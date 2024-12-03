@@ -297,46 +297,94 @@ export default defineComponent({
       }
     },
 
+    // async fetchTokenAndDecoderDetails() {
+    //   try {
+
+    //     const urlParams = new URLSearchParams(window.location.search);
+    //     const token = urlParams.get('token');
+    //     console.log('Le token détecté est :', token);
+
+    //     const isValidToken = (value: string) => {
+    //       const jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
+    //       return jwtRegex.test(value);
+    //     };
+
+    //     if (!token || !isValidToken(token)) {
+    //       throw new Error('Token invalide ou absent dans l\'URL');
+    //     }
+
+
+    //     const subscriber = new Subscriber(
+    //         0, // mobile (placeholder)
+    //         '', // name (will be populated)
+    //         '', // formula (will be populated)
+    //         null, // bouquet (will be populated)
+    //         new Date(), // expiry date (will be populated)
+    //         token
+    //     )
+
+    //     const detailsFetched = await subscriber.fetchDecoderDetails()
+
+    //     if (detailsFetched) {
+    //       this.token = token
+    //       this.code = subscriber.code || 0
+    //       this.decoderCode = subscriber.code?.toString() || ''
+    //       this.decoderFormula = subscriber.formula
+    //       this.subscriberName = subscriber.name
+    //       this.formattedExpiryDate = this.formatDate(subscriber.expiryDate)
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching decoder details:', error)
+    //   }
+    // },
     async fetchTokenAndDecoderDetails() {
-      try {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        console.log('Le token détecté est :', token);
+      // Validation du token
+      const isValidToken = (value: string) => {
+        const jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
+        return jwtRegex.test(value);
+      };
 
-        const isValidToken = (value: string) => {
-          const jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
-          return jwtRegex.test(value);
-        };
-
-        if (!token || !isValidToken(token)) {
-          throw new Error('Token invalide ou absent dans l\'URL');
-        }
-
-
-        const subscriber = new Subscriber(
-            0, // mobile (placeholder)
-            '', // name (will be populated)
-            '', // formula (will be populated)
-            null, // bouquet (will be populated)
-            new Date(), // expiry date (will be populated)
-            token
-        )
-
-        const detailsFetched = await subscriber.fetchDecoderDetails()
-
-        if (detailsFetched) {
-          this.token = token
-          this.code = subscriber.code || 0
-          this.decoderCode = subscriber.code?.toString() || ''
-          this.decoderFormula = subscriber.formula
-          this.subscriberName = subscriber.name
-          this.formattedExpiryDate = this.formatDate(subscriber.expiryDate)
-        }
-      } catch (error) {
-        console.error('Error fetching decoder details:', error)
+      if (!token || !isValidToken(token)) {
+        throw new Error('Token invalide ou absent dans l\'URL');
       }
-    },
+
+      // Créer un nouvel abonné avec le token
+      const subscriber = new Subscriber(
+        0, // mobile (placeholder)
+        '', // name (placeholder)
+        '', // formula (placeholder)
+        null, // bouquet (placeholder)
+        new Date(), // expiry date (placeholder)
+        token
+      );
+
+      // Récupérer les détails de l'abonné
+      const detailedSubscriber = await subscriber.fetchSubscriberByToken();
+
+      // Mettre à jour les données du composant
+      this.token = token;
+      this.code = subscriber.code || 0;
+      this.decoderCode = subscriber.code?.toString() || '';
+      this.decoderFormula = subscriber.formula;
+      this.subscriberName = subscriber.name;
+      this.formattedExpiryDate = this.formatDate(subscriber.expiryDate);
+
+      // Mettre à jour les données dynamiques du formulaire
+      this.availableFormulas = subscriber.availableFormulas;
+      this.availableBouquets = subscriber.availableBouquets;
+      this.formulaPrices = subscriber.formulaPrices;
+      this.bouquetPrices = subscriber.bouquetPrices;
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails du décodeur :', error);
+      // Gérer l'erreur (afficher un message à l'utilisateur, rediriger, etc.)
+    }
+  },
+
 
     formatDate(date: Date): string {
       return date.toLocaleDateString('fr-FR', {
